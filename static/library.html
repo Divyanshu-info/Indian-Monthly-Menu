@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipe Library — Indian Monthly Menu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .sr-only:focus {
+      position: static;
+      width: auto;
+      height: auto;
+      padding: .375rem .75rem;
+      margin: .5rem;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      outline: 2px solid #fff;
+      z-index: 9999;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    :root {
+      --bg: #FFFBF5;
+      --surface: #fff;
+      --panel: #FEF3C7;
+      --accent: #F97316;
+      --text: #2b1a0e;
+      --muted: #78716c;
+      --border: #f0e6d6;
+      --gold: #d4a017;
+    }
+
+    html.dark {
+      --bg: #1C1008;
+      --surface: #2C1A0E;
+      --panel: #3a2413;
+      --accent: #C2580A;
+      --text: #E8D5B0;
+      --muted: #b8a082;
+      --border: #47301c;
+      --gold: #b8860b;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .hindi {
+      font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+    }
+
+    .surface {
+      background: var(--surface);
+    }
+
+    .panel {
+      background: var(--panel);
+    }
+
+    .brd {
+      border-color: var(--border);
+    }
+
+    .modal-bg {
+      background: rgba(0, 0, 0, .5);
+    }
+
+    .tab-on {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    input,
+    select,
+    textarea {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar {
+      width: 9px;
+      height: 9px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <a href="#grid" class="sr-only">Skip to recipe grid</a>
+  <header class="sticky top-0 z-30 panel brd border-b shadow-sm">
+    <div class="max-w-[1300px] mx-auto px-4 py-2.5 flex items-center gap-3 flex-wrap">
+      <a href="/"
+        class="flex items-center gap-1.5 font-medium text-sm px-3 py-1.5 rounded-lg surface brd border hover:opacity-80"><i
+          data-lucide="arrow-left" class="w-4 h-4"></i>Calendar</a>
+      <div class="flex items-center gap-2 mr-auto"><span class="text-2xl">📖</span>
+        <h1 class="text-lg font-bold">Recipe Library</h1>
+      </div>
+      <button id="addBtn" class="px-3 py-1.5 rounded-lg text-sm font-medium text-white flex items-center gap-1.5"
+        style="background:var(--accent)"><i data-lucide="plus" class="w-4 h-4"></i>Add Recipe</button>
+      <button id="themeBtn" aria-label="Toggle dark mode" class="p-2 rounded-lg surface brd border hover:opacity-80"><i
+          data-lucide="moon" class="w-5 h-5" aria-hidden="true"></i></button>
+    </div>
+  </header>
+
+  <div class="max-w-[1300px] mx-auto px-4 py-4">
+    <input id="search" placeholder="Search recipes (English / हिंदी)…" aria-label="Search recipes"
+      class="w-full px-3 py-2 rounded-lg brd border outline-none focus:border-[var(--accent)] mb-3">
+    <div id="mealTabs" class="flex flex-wrap gap-1.5 mb-3"></div>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <select id="fRegion" class="px-2 py-1.5 rounded-lg brd border text-sm">
+        <option value="">All Regions</option>
+      </select>
+      <select id="fSeason" class="px-2 py-1.5 rounded-lg brd border text-sm">
+        <option value="">All Seasons</option>
+        <option>Winter</option>
+        <option>Summer</option>
+        <option>Monsoon</option>
+        <option>All</option>
+      </select>
+      <select id="fSpice" class="px-2 py-1.5 rounded-lg brd border text-sm">
+        <option value="">All Spice</option>
+        <option>Mild</option>
+        <option>Medium</option>
+        <option>Spicy</option>
+      </select>
+      <select id="fTag" class="px-2 py-1.5 rounded-lg brd border text-sm">
+        <option value="">All Tags</option>
+        <option>Vegetarian</option>
+        <option>Non-Veg</option>
+        <option>Festive</option>
+        <option>Kids Friendly</option>
+        <option>Quick</option>
+        <option>High Protein</option>
+      </select>
+    </div>
+    <p id="resultCount" class="text-xs mb-2" style="color:var(--muted)"></p>
+    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+    <p id="empty" class="hidden text-center py-10" style="color:var(--muted)">No recipes match your filters.</p>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="formModal" role="dialog" aria-modal="true" aria-labelledby="formTitle"
+    class="fixed inset-0 z-40 hidden modal-bg items-center justify-center p-4">
+    <div class="surface brd border rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
+      <div class="p-4 border-b brd flex items-center justify-between">
+        <h2 id="formTitle" class="font-bold text-lg">Add Recipe</h2>
+        <button onclick="closeModal('formModal')" aria-label="Close" class="p-1"><i data-lucide="x" class="w-5 h-5"
+            aria-hidden="true"></i></button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+        <label class="block">Name (English) *<input id="fName" aria-required="true"
+            class="w-full mt-1 px-2 py-1.5 rounded-lg brd border"></label>
+        <label class="block">Name (Hindi)<input id="fNameHi"
+            class="hindi w-full mt-1 px-2 py-1.5 rounded-lg brd border"></label>
+        <label class="block">Meal Type *<select id="fMeal" aria-required="true"
+            class="w-full mt-1 px-2 py-1.5 rounded-lg brd border">
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="dessert">Dessert</option>
+            <option value="beverage">Beverage</option>
+          </select></label>
+        <label class="block">Season *<select id="fSeasonIn" aria-required="true"
+            class="w-full mt-1 px-2 py-1.5 rounded-lg brd border">
+            <option>All</option>
+            <option>Winter</option>
+            <option>Summer</option>
+            <option>Monsoon</option>
+          </select></label>
+        <label class="block">Region<input id="fRegionIn" class="w-full mt-1 px-2 py-1.5 rounded-lg brd border"
+            value="Pan-Indian"></label>
+        <label class="block">Spice Level<select id="fSpiceIn" class="w-full mt-1 px-2 py-1.5 rounded-lg brd border">
+            <option>Mild</option>
+            <option selected>Medium</option>
+            <option>Spicy</option>
+          </select></label>
+        <label class="block">Servings<input id="fServings" type="number" min="1" value="4"
+            class="w-full mt-1 px-2 py-1.5 rounded-lg brd border"></label>
+        <label class="block">Suggested Beverage<input id="fBev"
+            class="w-full mt-1 px-2 py-1.5 rounded-lg brd border"></label>
+        <label class="block md:col-span-2">Description<input id="fDesc"
+            class="w-full mt-1 px-2 py-1.5 rounded-lg brd border"></label>
+        <label class="block md:col-span-2">Accompaniment<input id="fAccomp"
+            class="w-full mt-1 px-2 py-1.5 rounded-lg brd border"></label>
+        <label class="block md:col-span-2">Suggested Sides<input id="fSides"
+            class="w-full mt-1 px-2 py-1.5 rounded-lg brd border"></label>
+        <div class="md:col-span-2">
+          <span class="block mb-1">Tags</span>
+          <div class="flex flex-wrap gap-3" id="fTags">
+            <label class="flex items-center gap-1"><input type="checkbox" value="Festive">🎉 Festive</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Kids Friendly">👨‍👩‍👧 Kids
+              Friendly</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Quick">⚡ Quick</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="High Protein">💪 High Protein</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Vegetarian">🥬 Vegetarian</label>
+            <label class="flex items-center gap-1"><input type="checkbox" value="Non-Veg">🍗 Non-Veg</label>
+            <label class="flex items-center gap-1"><input type="checkbox" id="fWeekend">⭐ Weekend Special</label>
+          </div>
+        </div>
+        <label class="block md:col-span-2">Ingredients * (one per line)<textarea id="fIng" rows="5" aria-required="true"
+            class="w-full mt-1 px-2 py-1.5 rounded-lg brd border"></textarea></label>
+        <label class="block md:col-span-2">Instructions (one step per line)<textarea id="fIns" rows="5"
+            class="w-full mt-1 px-2 py-1.5 rounded-lg brd border"></textarea></label>
+      </div>
+      <div class="p-3 border-t brd flex justify-end gap-2">
+        <button onclick="closeModal('formModal')"
+          class="px-4 py-2 rounded-lg text-sm surface brd border">Cancel</button>
+        <button id="saveBtn" class="px-4 py-2 rounded-lg text-sm text-white"
+          style="background:var(--accent)">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete blocked modal -->
+  <div id="blockModal" role="alertdialog" aria-modal="true" aria-labelledby="blockModalTitle"
+    class="fixed inset-0 z-50 hidden modal-bg items-center justify-center p-4">
+    <div class="surface brd border rounded-2xl w-full max-w-sm p-5 shadow-2xl">
+      <h3 id="blockModalTitle" class="font-bold text-lg mb-2 flex items-center gap-2"><i data-lucide="alert-triangle"
+          class="w-5 h-5 text-amber-500" aria-hidden="true"></i>Cannot Delete</h3>
+      <p class="text-sm mb-2" style="color:var(--muted)">This recipe is used on these days. Clear those slots first:</p>
+      <ul id="blockDays" class="text-sm list-disc pl-5 mb-4 max-h-40 overflow-y-auto"></ul>
+      <div class="flex justify-end"><button onclick="closeModal('blockModal')"
+          class="px-4 py-2 rounded-lg text-sm text-white" style="background:var(--accent)">OK</button></div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite" aria-atomic="true"
+    class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2 rounded-lg text-white text-sm shadow-lg"
+    style="background:#1f2937"></div>
+
+  <script src="/static/lib.js"></script>
+  <script src="/static/chat.js"></script>
+</body>
+
+</html>

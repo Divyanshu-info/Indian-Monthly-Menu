@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weekly Menu — {{ year }} Week {{ week }}</title>
+  <style>
+    @page { size: A4; margin: 1.5cm; }
+    body { font-family: Georgia, 'Times New Roman', serif; color: #2b1a0e; }
+    h1 { color: #b45309; text-align: center; margin-bottom: 2px; font-size: 24px; }
+    .sub { text-align: center; color: #78716c; margin-top: 0; font-size: 12px; }
+    .day { margin: 14px 0; page-break-inside: avoid; }
+    .day-title { background: #fef3c7; color: #92400e; padding: 6px 10px;
+      font-size: 15px; font-weight: bold; border-left: 4px solid #f97316; }
+    table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+    td { border: 1px solid #e7e5e4; padding: 6px 8px; vertical-align: top; font-size: 12px; }
+    .meal { width: 90px; font-weight: bold; color: #b45309; text-transform: capitalize; }
+    .hindi { color: #78716c; font-size: 11px; }
+    .accomp { color: #57534e; font-size: 11px; font-style: italic; }
+    .empty { color: #a8a29e; font-style: italic; }
+    .shop { margin-top: 24px; page-break-before: always; }
+    .shop h2 { color: #b45309; border-bottom: 2px solid #fed7aa; padding-bottom: 4px; }
+    .shop ul { columns: 2; font-size: 12px; }
+    .shop li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Indian Weekly Menu</h1>
+  <p class="sub">{{ year }} &middot; ISO Week {{ week }}</p>
+
+  {% for day in days %}
+  <div class="day">
+    <div class="day-title">{{ day.label }}</div>
+    <table>
+      {% for meal, recipe in day.meals %}
+      <tr>
+        <td class="meal">{{ meal }}</td>
+        <td>
+          {% if recipe %}
+            <strong>{{ recipe.name }}</strong>
+            {% if recipe.name_hindi %}<span class="hindi">— {{ recipe.name_hindi }}</span>{% endif %}
+            {% if recipe.accompaniment %}<div class="accomp">{{ recipe.accompaniment }}</div>{% endif %}
+          {% else %}
+            <span class="empty">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endfor %}
+
+  {% if shopping %}
+  <div class="shop">
+    <h2>Shopping List (household of {{ household }})</h2>
+    <ul>
+      {% for item in shopping %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</body>
+</html>

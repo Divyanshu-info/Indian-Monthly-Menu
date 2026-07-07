@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Indian Monthly Menu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .sr-only:focus {
+      position: static;
+      width: auto;
+      height: auto;
+      padding: .375rem .75rem;
+      margin: .5rem;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      outline: 2px solid #fff;
+      z-index: 9999;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .chip,
+      .add-slot {
+        transition: none;
+      }
+    }
+
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, .35);
+      pointer-events: none;
+    }
+
+    #loader.hidden {
+      display: none;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, .3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .spinner {
+        animation: none;
+        border-top-color: var(--accent);
+      }
+    }
+
+    :root {
+      --bg: #FFFBF5;
+      --surface: #ffffff;
+      --panel: #FEF3C7;
+      --accent: #F97316;
+      --text: #2b1a0e;
+      --muted: #78716c;
+      --border: #f0e6d6;
+      --gold: #d4a017;
+    }
+
+    html.dark {
+      --bg: #1C1008;
+      --surface: #2C1A0E;
+      --panel: #3a2413;
+      --accent: #C2580A;
+      --text: #E8D5B0;
+      --muted: #b8a082;
+      --border: #47301c;
+      --gold: #b8860b;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .hindi {
+      font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+    }
+
+    .surface {
+      background: var(--surface);
+    }
+
+    .panel {
+      background: var(--panel);
+    }
+
+    .brd {
+      border-color: var(--border);
+    }
+
+    .chip {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-radius: 8px;
+      padding: 4px 7px;
+      font-size: 11px;
+      line-height: 1.15;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      min-height: 36px;
+      transition: transform .08s;
+    }
+
+    .chip:hover {
+      transform: translateY(-1px);
+    }
+
+    .chip-breakfast {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .dark .chip-breakfast {
+      background: #14311d;
+      color: #4ADE80;
+    }
+
+    .chip-lunch {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .dark .chip-lunch {
+      background: #3a2a08;
+      color: #FCD34D;
+    }
+
+    .chip-dinner {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .dark .chip-dinner {
+      background: #3a1414;
+      color: #F87171;
+    }
+
+    .chip-dessert {
+      background: #f3e8ff;
+      color: #7e22ce;
+    }
+
+    .dark .chip-dessert {
+      background: #2a163a;
+      color: #d8b4fe;
+    }
+
+    .add-slot {
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      font-size: 12px;
+      padding: 4px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: .55;
+      cursor: pointer;
+      transition: .15s;
+    }
+
+    .add-slot:hover {
+      opacity: 1;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .weekend-cell {
+      box-shadow: inset 0 0 0 2px var(--gold);
+    }
+
+    .today-cell {
+      box-shadow: inset 0 0 0 3px var(--accent);
+      background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+    }
+
+    .today-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+    }
+
+    .modal-bg {
+      background: rgba(0, 0, 0, .5);
+    }
+
+    ::-webkit-scrollbar {
+      width: 9px;
+      height: 9px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 8px;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+
+      body {
+        background: #fff;
+        color: #000;
+        font-family: Georgia, serif;
+      }
+
+      #calendar {
+        display: block;
+      }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <a href="#calendar" class="sr-only">Skip to calendar</a>
+  <!-- Header -->
+  <header class="no-print sticky top-0 z-30 panel brd border-b shadow-sm">
+    <div class="max-w-[1500px] mx-auto px-4 py-2.5 flex items-center gap-3 flex-wrap">
+      <div class="flex items-center gap-2 mr-auto">
+        <span class="text-2xl">🍛</span>
+        <div>
+          <h1 class="text-lg font-bold leading-none">Indian Monthly Menu</h1>
+          <p class="text-[11px]" style="color:var(--muted)">Bilingual meal planner</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1">
+        <button id="prevBtn" aria-label="Previous month"
+          class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10"><i data-lucide="chevron-left" class="w-5 h-5"
+            aria-hidden="true"></i></button>
+        <span id="monthLabel" class="font-semibold min-w-[150px] text-center"></span>
+        <button id="nextBtn" aria-label="Next month" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10"><i
+            data-lucide="chevron-right" class="w-5 h-5" aria-hidden="true"></i></button>
+      </div>
+      <button id="todayBtn"
+        class="px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 surface brd border hover:opacity-80"><i
+          data-lucide="calendar-check" class="w-4 h-4"></i>Today</button>
+      <button id="jsonBtn"
+        class="px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 surface brd border hover:opacity-80"><i
+          data-lucide="download" class="w-4 h-4"></i>Backup</button>
+      <a href="/library"
+        class="px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 surface brd border hover:opacity-80"><i
+          data-lucide="book-open" class="w-4 h-4"></i>Recipe Library</a>
+      <button id="themeBtn" aria-label="Toggle dark mode" class="p-2 rounded-lg surface brd border hover:opacity-80"><i
+          data-lucide="moon" class="w-5 h-5" aria-hidden="true"></i></button>
+    </div>
+  </header>
+
+  <div class="max-w-[1500px] mx-auto px-4 py-4 flex gap-4">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="no-print w-64 shrink-0 hidden lg:block">
+      <div class="surface brd border rounded-xl p-4 sticky top-20">
+        <div class="flex items-center justify-between mb-3">
+          <span id="seasonBadge" class="text-sm font-bold px-2.5 py-1 rounded-full panel"></span>
+          <button id="sidebarClose" aria-label="Close seasonal info" class="lg:hidden p-1"><i data-lucide="x"
+              class="w-4 h-4" aria-hidden="true"></i></button>
+        </div>
+        <h3 class="text-xs font-bold uppercase tracking-wide mb-1.5" style="color:var(--muted)">In-Season Vegetables
+        </h3>
+        <ul id="vegList" class="text-sm space-y-1 mb-4"></ul>
+        <h3 class="text-xs font-bold uppercase tracking-wide mb-1.5" style="color:var(--muted)">In-Season Fruits</h3>
+        <ul id="fruitList" class="text-sm space-y-1"></ul>
+      </div>
+    </aside>
+
+    <!-- Calendar -->
+    <main class="flex-1 min-w-0">
+      <button id="sidebarToggle"
+        class="no-print lg:hidden mb-3 px-3 py-1.5 rounded-lg text-sm surface brd border flex items-center gap-1.5"><i
+          data-lucide="panel-left" class="w-4 h-4"></i>Seasonal Info</button>
+      <div class="no-print hidden md:grid grid-cols-7 gap-1.5 mb-1.5 text-center text-xs font-bold"
+        style="color:var(--muted)">
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div>Sat</div>
+        <div>Sun</div>
+      </div>
+      <div id="calendar" tabindex="-1" class="space-y-3"></div>
+    </main>
+  </div>
+
+  <!-- Recipe Picker Modal -->
+  <div id="pickerModal" role="dialog" aria-modal="true" aria-labelledby="pickerHeading"
+    class="no-print fixed inset-0 z-40 hidden modal-bg items-center justify-center p-4">
+    <div class="surface brd border rounded-2xl w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl">
+      <div class="p-4 border-b brd flex items-center justify-between">
+        <h2 id="pickerHeading" class="font-bold text-lg">Pick a <span id="pickerMeal"
+            class="capitalize text-[var(--accent)]"></span></h2>
+        <button onclick="closeModal('pickerModal')" aria-label="Close" class="p-1"><i data-lucide="x" class="w-5 h-5"
+            aria-hidden="true"></i></button>
+      </div>
+      <div class="p-4 space-y-2 border-b brd">
+        <input id="pickerSearch" placeholder="Search name (English / हिंदी)…" aria-label="Search recipes"
+          class="w-full px-3 py-2 rounded-lg surface brd border outline-none focus:border-[var(--accent)]"
+          style="background:var(--bg)">
+        <div class="flex gap-2">
+          <select id="pickerSeason" class="flex-1 px-2 py-1.5 rounded-lg brd border text-sm"
+            style="background:var(--bg)">
+            <option value="">All Seasons</option>
+            <option>Winter</option>
+            <option>Summer</option>
+            <option>Monsoon</option>
+            <option>All</option>
+          </select>
+          <select id="pickerRegion" class="flex-1 px-2 py-1.5 rounded-lg brd border text-sm"
+            style="background:var(--bg)">
+            <option value="">All Regions</option>
+          </select>
+          <select id="pickerTag" class="flex-1 px-2 py-1.5 rounded-lg brd border text-sm" style="background:var(--bg)">
+            <option value="">All Tags</option>
+            <option>Vegetarian</option>
+            <option>Non-Veg</option>
+            <option>Festive</option>
+            <option>Kids Friendly</option>
+            <option>Quick</option>
+            <option>High Protein</option>
+          </select>
+        </div>
+      </div>
+      <p id="pickerCount" class="px-3 pt-1 text-xs" style="color:var(--muted)"></p>
+      <div id="pickerList" class="p-2 overflow-y-auto flex-1"></div>
+    </div>
+  </div>
+
+  <!-- Recipe View Modal -->
+  <div id="viewModal" role="dialog" aria-modal="true" aria-labelledby="vName"
+    class="no-print fixed inset-0 z-40 hidden modal-bg items-center justify-center p-4">
+    <div class="surface brd border rounded-2xl w-full max-w-lg max-h-[88vh] flex flex-col shadow-2xl">
+      <div class="p-4 border-b brd flex items-start justify-between gap-3">
+        <div>
+          <h2 id="vName" class="font-bold text-xl leading-tight"></h2>
+          <p id="vHindi" class="hindi text-base" style="color:var(--muted)"></p>
+        </div>
+        <button onclick="closeModal('viewModal')" aria-label="Close" class="p-1"><i data-lucide="x" class="w-5 h-5"
+            aria-hidden="true"></i></button>
+      </div>
+      <div class="p-4 overflow-y-auto flex-1">
+        <div class="flex items-center gap-2 mb-3">
+          <label for="vLang" class="text-xs font-medium" style="color:var(--muted)"><i data-lucide="languages"
+              class="w-3.5 h-3.5 inline" aria-hidden="true"></i> Language</label>
+          <select id="vLang" class="text-sm px-2 py-1 rounded-lg brd border" style="background:var(--bg)">
+            <option>English</option>
+          </select>
+          <span id="vLangStatus" class="text-xs" style="color:var(--muted)"></span>
+        </div>
+        <div id="vBadges" class="flex flex-wrap gap-1.5 mb-3"></div>
+        <div id="vAccomp" class="text-sm rounded-lg panel px-3 py-2 mb-2"></div>
+        <div class="flex flex-wrap gap-x-5 gap-y-1 text-sm mb-3" style="color:var(--muted)">
+          <span id="vBev"></span><span id="vSides"></span>
+        </div>
+        <div class="flex gap-2 mb-3 border-b brd">
+          <button data-tab="ing"
+            class="vtab px-3 py-2 text-sm font-medium border-b-2 border-[var(--accent)]">Ingredients</button>
+          <button data-tab="ins" class="vtab px-3 py-2 text-sm font-medium border-b-2 border-transparent"
+            style="color:var(--muted)">Instructions</button>
+        </div>
+        <ul id="vIng" class="text-sm space-y-1 list-disc pl-5"></ul>
+        <ol id="vIns" class="hidden text-sm space-y-2 list-decimal pl-5"></ol>
+      </div>
+      <div id="vAltPanel" class="hidden border-t brd p-3">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-semibold">Choose an alternative</span>
+          <button id="vAltShuffle"
+            class="text-xs px-2 py-1 rounded-lg surface brd border hover:opacity-80 flex items-center gap-1">
+            <i data-lucide="shuffle" class="w-3.5 h-3.5" aria-hidden="true"></i>Random</button>
+        </div>
+        <div id="vAltList" class="max-h-52 overflow-y-auto space-y-1" role="listbox" aria-label="Alternative recipes">
+        </div>
+      </div>
+      <div class="p-3 border-t brd flex gap-2 justify-end flex-wrap">
+        <button id="vSwap" title="Swap for another recipe of the same meal" aria-expanded="false"
+          class="px-3 py-1.5 rounded-lg text-sm surface brd border hover:opacity-80 flex items-center gap-1.5"><i
+            data-lucide="refresh-cw" class="w-4 h-4"></i>Swap</button>
+        <a id="vEdit" href="#"
+          class="px-3 py-1.5 rounded-lg text-sm surface brd border hover:opacity-80 flex items-center gap-1.5"><i
+            data-lucide="pencil" class="w-4 h-4"></i>Edit</a>
+        <button id="vRemove"
+          class="px-3 py-1.5 rounded-lg text-sm bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 hover:opacity-80 flex items-center gap-1.5"><i
+            data-lucide="trash-2" class="w-4 h-4"></i>Remove</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Dialog -->
+  <div id="confirmModal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle"
+    aria-describedby="confirmMsg" class="no-print fixed inset-0 z-50 hidden modal-bg items-center justify-center p-4">
+    <div class="surface brd border rounded-2xl w-full max-w-sm p-5 shadow-2xl">
+      <h3 id="confirmTitle" class="font-bold text-lg mb-2"></h3>
+      <p id="confirmMsg" class="text-sm mb-5" style="color:var(--muted)"></p>
+      <div class="flex gap-2 justify-end">
+        <button id="confirmCancel" class="px-4 py-2 rounded-lg text-sm surface brd border">Cancel</button>
+        <button id="confirmOk" class="px-4 py-2 rounded-lg text-sm text-white"
+          style="background:var(--accent)">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shopping List Drawer -->
+  <div id="shopDrawer" class="no-print fixed inset-0 z-40 hidden">
+    <div class="absolute inset-0 modal-bg" onclick="closeShop()" aria-hidden="true"></div>
+    <div role="dialog" aria-modal="true" aria-labelledby="shopHeading"
+      class="absolute right-0 top-0 h-full w-full max-w-md surface shadow-2xl flex flex-col">
+      <div class="p-4 border-b brd flex items-center justify-between">
+        <h2 id="shopHeading" class="font-bold text-lg flex items-center gap-2"><i data-lucide="shopping-cart"
+            class="w-5 h-5" aria-hidden="true"></i>Shopping List</h2>
+        <button onclick="closeShop()" aria-label="Close shopping list" class="p-1"><i data-lucide="x" class="w-5 h-5"
+            aria-hidden="true"></i></button>
+      </div>
+      <div class="p-4 border-b brd flex items-center gap-2">
+        <label class="text-sm font-medium">Household size</label>
+        <input id="householdInput" type="number" min="1" class="w-20 px-2 py-1 rounded-lg brd border"
+          style="background:var(--bg)">
+        <button id="shopPrint"
+          class="ml-auto px-3 py-1.5 rounded-lg text-sm surface brd border flex items-center gap-1.5"><i
+            data-lucide="printer" class="w-4 h-4"></i>Print</button>
+      </div>
+      <div id="shopList" class="p-4 overflow-y-auto flex-1 space-y-1.5"></div>
+    </div>
+  </div>
+
+  <div id="loader" class="hidden" aria-hidden="true">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite" aria-atomic="true"
+    class="no-print fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2 rounded-lg text-white text-sm shadow-lg"
+    style="background:#1f2937"></div>
+
+  <script src="/static/app.js"></script>
+  <script src="/static/chat.js"></script>
+</body>
+
+</html>
