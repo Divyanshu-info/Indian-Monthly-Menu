@@ -1,5 +1,15 @@
 """FastAPI app entrypoint: Indian Monthly Menu web app."""
 
+# Trust the OS certificate store so outbound HTTPS (Gemini/OpenAI/Spoonacular)
+# works behind corporate TLS-inspection proxies that inject a private root CA.
+# Must run before any HTTPS client (httpx/google-genai) builds an SSL context.
+try:
+    import truststore
+
+    truststore.inject_into_ssl()
+except Exception:  # noqa: BLE001 - never block startup on this best-effort shim
+    pass
+
 from contextlib import asynccontextmanager
 from pathlib import Path
 

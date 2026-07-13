@@ -3421,3 +3421,13 @@ RECIPES = [
         "instructions": "1. Whisk shrikhand with buttermilk and milk till smooth.\n2. Add cardamom and nutmeg.\n3. Add saffron strands.\n4. Chill well.\n5. Serve garnished with nuts.",
     },
 ]
+
+# Extra v4 recipes (fast food, continental, chaat, regional + more).
+# Concatenated with dedup so no duplicate `name` is ever seeded.
+from seed_data_extra import EXTRA_RECIPES  # noqa: E402
+
+_seen = {r["name"] for r in RECIPES}
+for _r in EXTRA_RECIPES:
+    if _r["name"] not in _seen:
+        RECIPES.append(_r)
+        _seen.add(_r["name"])

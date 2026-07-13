@@ -448,7 +448,13 @@ function changeMonth(delta) {
 }
 $('prevBtn').onclick = () => changeMonth(-1);
 $('nextBtn').onclick = () => changeMonth(1);
-$('todayBtn').onclick = () => { const n = new Date(); state.year = n.getFullYear(); state.month = n.getMonth() + 1; refresh(); };
+function scrollToToday() {
+  requestAnimationFrame(() => {
+    const cell = document.querySelector('.today-cell');
+    if (cell) cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+  });
+}
+$('todayBtn').onclick = async () => { const n = new Date(); state.year = n.getFullYear(); state.month = n.getMonth() + 1; await refresh(); scrollToToday(); };
 $('jsonBtn').onclick = () => window.open('/api/export/json', '_blank');
 $('sidebarToggle').onclick = () => $('sidebar').classList.toggle('hidden');
 $('sidebarClose').onclick = () => $('sidebar').classList.add('hidden');
