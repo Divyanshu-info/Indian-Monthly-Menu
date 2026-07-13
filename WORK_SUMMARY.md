@@ -4,7 +4,7 @@
 **Project:** Indian Monthly Menu  
 **Stack:** Python 3.13 · FastAPI · SQLAlchemy · SQLite · Jinja2 · WeasyPrint · OpenAI + Gemini (LLM) · Vanilla JS · TailwindCSS · Lucide Icons  
 **Server:** `http://127.0.0.1:8010`  
-**Last Updated:** 2026-07-06 (v3)  
+**Last Updated:** 2026-07-13 (v4)  
 
 ---
 
@@ -42,6 +42,8 @@ Build a fully functional, bilingual (English + Hindi) Indian meal planner web ap
 | Package manager | uv |
 | UI testing | Playwright MCP |
 | Research | Web search + SerpAPI MCP |
+| Chat tools (v4) | MCP client (`mcp` SDK) → Spoonacular + sqlite-db as LLM function-calls |
+| TLS (v4) | `truststore` — trusts the OS cert store for HTTPS behind corporate proxies |
 
 ---
 
@@ -53,7 +55,9 @@ Menu/
 ├── database.py               # SQLAlchemy engine, SessionLocal, get_db dependency
 ├── models.py                 # ORM: Recipe, MenuEntry, AppSetting
 ├── schemas.py                # Pydantic request/response models
-├── seed_data.py              # 200 seeded recipes (full metadata, bilingual)
+├── seed_data.py              # Base recipes; merges seed_data_extra with name dedup
+├── seed_data_extra.py        # v4: ~281 additional bilingual recipes (fast food, continental, chaat, regional)
+├── mcp_client.py             # v4: MCP client — spawns Spoonacular + sqlite-db stdio servers, exposes tools to Gemini
 ├── seasonal_data.py          # Month → season + in-season vegetables + fruits
 ├── autofill.py               # Week auto-fill algorithm
 ├── llm.py                    # Pluggable OpenAI + Gemini provider (chat + translate)
@@ -181,7 +185,8 @@ Menu/
 | Method | Path | Description |
 |---|---|---|
 | GET | `/api/chat/status` | Whether an LLM key is configured + which provider |
-| POST | `/api/chat` | SSE stream; grounded on recipe catalogue + week menu/shopping; EN/HI auto-reply |
+| POST | `/api/chat` | SSE stream; **v4:** prefers MCP tool-calling (Spoonacular + sqlite-db) then falls back to DB-grounded streaming; EN/HI auto-reply |
+| GET | `/api/chat/status` | **v4:** also reports MCP tool availability (`mcp.sqlite`, `mcp.spoonacular`) |
 
 ---
 
@@ -327,7 +332,39 @@ Sourced via web research + SerpAPI on Indian Rabi/Kharif/Zaid agricultural cycle
 ### Accessibility & Usability polish
 - ARIA roles/labels on modals and icon buttons, focus management, skip links, `prefers-reduced-motion`, larger touch targets, loading spinner, debounced search, and result counts.
 
+## 11b. New Features (v4)
+
+### Mobile "Today" scroll-to-current-date
+- On the calendar, clicking **Today** now scrolls the viewport to the current date card (`scrollIntoView({behavior:'smooth', block:'center'})`) after re-render — essential on mobile where the month grid is long. Safe no-op when today's cell is off-screen (e.g. different month).
+- Backend/Frontend: `static/app.js` — `scrollToToday()` invoked from the `todayBtn` handler.
+
+### Recipe library expanded to ~500
+- Grew from **200 → 481 recipes** via `seed_data_extra.py`, merged into `seed_data.py` with a **name-dedup guard** (no duplicate names ever seeded).
+- New categories/dishes include **Pizza, Pasta, Seviyan, Dhokla, Cheese Balls, Toast, Bread Butter, Fruit Salad** plus more fast food, continental, Indo-Chinese, chaat and regional options. All bilingual (EN + Hindi), conforming to the full recipe schema.
+- Loaded into `menu.db` via the idempotent `init_db()` on restart.
+
+### Chat backend as an MCP client (Spoonacular + sqlite-db tools)
+- `mcp_client.py` launches the **Spoonacular** and **sqlite-db** MCP servers as stdio subprocesses (mirroring `mcp_config.json`), lists their tools, converts the schemas to Gemini `FunctionDeclaration`s, and runs a **tool-calling loop** (up to 6 rounds) so the LLM grounds answers in live tool results.
+- `routers/chat.py` prefers this path (`mcp_client.answer_sync`), enriches the system prompt with a `_tools_hint()` describing the real `recipes` columns (`meal_type`, etc.), and **falls back** to DB-grounded streaming if MCP/LLM is unavailable.
+- `SPOONACULAR_API_KEY` read from `.env`.
+
+### Corporate-proxy TLS fix
+- Added `truststore` and inject it at startup (`main.py`, `mcp_client.py`) so Python uses the **OS certificate store** — fixes `CERTIFICATE_VERIFY_FAILED: self-signed certificate in certificate chain` on machines behind a TLS-inspection proxy, without disabling verification.
+
 ## 12. Changelog
+
+### v4 — 2026-07-13
+
+| Area | Change |
+|---|---|
+| **Recipes** | Library expanded **200 → 481** via `seed_data_extra.py` (Pizza, Pasta, Seviyan, Dhokla, Cheese Balls, Toast, Bread Butter, Fruit Salad + more fast food/continental/chaat/regional), dedup-merged into `seed_data.py` |
+| **Mobile UX** | **Today** button now scrolls the viewport to the current date card (`scrollToToday()` in `app.js`) |
+| **AI Chat** | Backend is now an **MCP client**: Spoonacular + sqlite-db exposed to Gemini as function-calls via `mcp_client.py`; graceful fallback to DB-grounded streaming |
+| **Chat prompt** | `_tools_hint()` documents real `recipes` columns and tells the model to inspect schema and retry instead of guessing |
+| **TLS** | Added `truststore` (OS cert store) to fix corporate-proxy `CERTIFICATE_VERIFY_FAILED` for all outbound HTTPS |
+| **Deps** | Added `mcp`, `truststore`; `.env` gained `SPOONACULAR_API_KEY` |
+| **Tools used** | Spoonacular MCP (recipe research), sqlite-db MCP (count/verification), Playwright MCP (E2E testing) |
+
 
 ### v3 — 2026-07-06
 
@@ -357,7 +394,7 @@ Sourced via web research + SerpAPI on Indian Rabi/Kharif/Zaid agricultural cycle
 
 ---
 
-## 12. Testing (Playwright MCP)
+## 12b. Testing (Playwright MCP)
 
 All tests performed against `http://127.0.0.1:8010`:
 
@@ -379,6 +416,16 @@ All tests performed against `http://127.0.0.1:8010`:
 | **v2** Today cell: badge + tinted background | ✅ 1 `today-cell`, `today-badge` renders "Today" |
 | **v2** Swap feature | ✅ Breakfast swapped Lentil & Egg Chila → Paneer Paratha |
 | **v2** Weekday autofill pool: zero chicken | ✅ 7 non-chicken lunch options confirmed in Python |
+
+**v4 tests** (against `http://127.0.0.1:8013`):
+
+| Test | Result |
+|---|---|
+| Library recipe count | ✅ **481 recipes** shown; new dishes (Aam Ras, pizzas, pastas) present |
+| Mobile Today scroll (390×844) | ✅ Today cell moved from top≈3292px (off-screen) to top≈325px (`inView: true`) after clicking **Today** |
+| Chat + sqlite MCP (EN) | ✅ "How many breakfast recipes…" → **"There are 108 breakfast recipes in the library."** (matches DB) |
+| Chat + Spoonacular MCP (HI) | ✅ Hindi paneer query invoked the Spoonacular tool and returned a grounded reply |
+| TLS behind proxy | ✅ `truststore` resolved `CERTIFICATE_VERIFY_FAILED`; chat no longer errors |
 
 Only error observed: `favicon.ico` 404 (cosmetic, no impact).
 
@@ -414,4 +461,6 @@ http://127.0.0.1:8010/library  # Recipe Library
 http://127.0.0.1:8010/docs     # FastAPI Swagger UI
 ```
 
-The database (`menu.db`) is **auto-created** on first launch and **idempotently seeded** — new recipes from `seed_data.py` are added on every startup without touching existing data. Currently **200 recipes** are seeded. The `translations` table is created automatically. No migrations needed.
+The database (`menu.db`) is **auto-created** on first launch and **idempotently seeded** — new recipes from `seed_data.py` (which merges `seed_data_extra.py` with name-dedup) are added on every startup without touching existing data. Currently **481 recipes** are seeded. The `translations` table is created automatically. No migrations needed.
+
+**AI chat with MCP tools (v4):** add `SPOONACULAR_API_KEY` to `.env` (alongside `GEMINI_API_KEY`). The chat backend spawns the Spoonacular + sqlite-db MCP servers on demand and lets the LLM call them as tools; if they are unavailable it falls back to DB-grounded streaming. `truststore` is injected at startup so HTTPS works behind corporate TLS-inspection proxies.
